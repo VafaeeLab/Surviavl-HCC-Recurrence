@@ -65,6 +65,9 @@ pdf("KM-0.pdf", width = 6, height = 6)
 ggsurvplot(
   km_fit,
   data = dat_train_yr,
+  palette =
+    c("#0000a7"),# custom color palettes
+  break.time.by = 1,
   xlab = "Time in years",
   xlim = c(0, 20),
   ylim = c(0, 1),
@@ -74,7 +77,10 @@ ggsurvplot(
   # Add risk table
   ggtheme = theme_bw() # Change ggplot2 theme
 )
+
 dev.off()
+
+summary(km_fit,time=c(2, 5))$surv
 
 ## Kaplan Meier Analysis with group:
 # ---------------------------------------------------------------------------------------#
@@ -253,6 +259,8 @@ ggsurvplot(
   km_trt_fit,
   data = dat_train_yr,
   size = 1,
+  palette =
+    c("#0000a7", "#c1272d"),# custom color palettes
   # change line size
   conf.int = TRUE,
   # Add confidence interval
@@ -268,7 +276,10 @@ ggsurvplot(
   ylim = c(0, 1),
   risk.table.height = 0.3,
   # Useful to change when you have multiple groups
-  ggtheme = theme_bw() # Change ggplot2 theme
+  ggtheme = theme_bw(), # Change ggplot2 theme
+  legend.title="",
+  legend.labs =
+    c("INR <= 1", "INR > 1.1"),
 )
 dev.off()
 
@@ -384,6 +395,8 @@ ggsurvplot(
   km_trt_fit,
   data = dat_train_yr,
   size = 1,
+  palette =
+    c("#0000a7", "#c1272d"),# custom color palettes
   # change line size
   conf.int = TRUE,
   # Add confidence interval
@@ -397,9 +410,12 @@ ggsurvplot(
   xlab = "Time in years",
   xlim = c(0, 20),
   ylim = c(0, 1),
+  legend.labs =
+    c("Size < 5cm", "Size >= 5cm"),
   risk.table.height = 0.3,
   # Useful to change when you have multiple groups
-  ggtheme = theme_bw() # Change ggplot2 theme
+  ggtheme = theme_bw(), # Change ggplot2 theme
+  legend.title=""
 )
 dev.off()
 
@@ -447,6 +463,8 @@ ggsurvplot(
   km_trt_fit,
   data = dat_train_yr,
   size = 1,
+  palette =
+    c("#0000a7", "#c1272d"),# custom color palettes
   # change line size
   conf.int = TRUE,
   # Add confidence interval
@@ -460,9 +478,12 @@ ggsurvplot(
   xlab = "Time in years",
   xlim = c(0, 20),
   ylim = c(0, 1),
+  legend.labs =
+    c("No cirrhosis", "Cirrhosis"),
   risk.table.height = 0.3,
   # Useful to change when you have multiple groups
-  ggtheme = theme_bw() # Change ggplot2 theme
+  ggtheme = theme_bw(), # Change ggplot2 theme
+  legend.title=""
 )
 dev.off()
 
@@ -549,6 +570,8 @@ ggsurvplot(
   km_trt_fit,
   data = dat_train_yr,
   size = 1,
+  palette =
+    c("#0000a7", "#c1272d"),# custom color palettes
   # change line size
   conf.int = TRUE,
   # Add confidence interval
@@ -558,13 +581,16 @@ ggsurvplot(
   # Add risk table
   risk.table.col = "strata",
   # Risk table color by groups
-  title = "Lymphatic vascular invasion",
+  title = "Lymphovascular invasion",
   xlab = "Time in years",
   xlim = c(0, 20),
   ylim = c(0, 1),
+  legend.labs =
+    c("No LVI", "LVI"),
   risk.table.height = 0.3,
   # Useful to change when you have multiple groups
-  ggtheme = theme_bw() # Change ggplot2 theme
+  ggtheme = theme_bw(), # Change ggplot2 theme
+  legend.title=""
 )
 dev.off()
 
@@ -862,7 +888,7 @@ cox <- coxph(
 )
 summary(cox)
 
-# write.csv(tidy(cox), file = "cox.csv")
+write.csv(tidy(cox), file = "cox.csv")
 
 cox_fit <- survfit(cox)
 
@@ -960,14 +986,14 @@ r_fit_all <- ranger(
 # Average the survival models
 death_times_all <- r_fit_all$unique.death.times
 surv_prob_all <- data.frame(r_fit_all$survival)
-avg_prob_all <- sapply(surv_prob_all, mean)
+avg_prob_all <- colMeans(surv_prob_all)
 
 # Predict on the test set
 r_pred_all_test <- predict(r_fit_all, data = dat_test)
 
 # Extract survival probabilities
 surv_prob_all_test <- data.frame(r_pred_all_test$survival)
-avg_prob_all_test <- sapply(surv_prob_all_test, mean)
+avg_prob_all_test <- colMeans(surv_prob_all_test)
 
 
 r_fit_sign_uni <- ranger(
@@ -984,14 +1010,14 @@ r_fit_sign_uni <- ranger(
 # Average the survival models
 death_times_sign_uni <- r_fit_sign_uni$unique.death.times
 surv_prob_sign_uni <- data.frame(r_fit_sign_uni$survival)
-avg_prob_sign_uni <- sapply(surv_prob_sign_uni, mean)
+avg_prob_sign_uni <- colMeans(surv_prob_sign_uni)
 
 # Predict on the test set
 r_pred_sign_uni_test <- predict(r_fit_sign_uni, data = dat_test)
 
 # Extract survival probabilities
 surv_prob_sign_uni_test <- data.frame(r_pred_sign_uni_test$survival)
-avg_prob_sign_uni_test <- sapply(surv_prob_sign_uni_test, mean)
+avg_prob_sign_uni_test <- colMeans(surv_prob_sign_uni_test)
 
 r_fit_sign <- ranger(
   Surv(DaysToRecurrence, Recurrence) ~
@@ -1006,14 +1032,14 @@ r_fit_sign <- ranger(
 # Average the survival models
 death_times_sign <- r_fit_sign$unique.death.times
 surv_prob_sign <- data.frame(r_fit_sign$survival)
-avg_prob_sign <- sapply(surv_prob_sign, mean)
+avg_prob_sign <- colMeans(surv_prob_sign)
 
 # Predict on the test set
 r_pred_sign_test <- predict(r_fit_sign, data = dat_test)
 
 # Extract survival probabilities
 surv_prob_sign_test <- data.frame(r_pred_sign_test$survival)
-avg_prob_sign_test <- sapply(surv_prob_sign_test, mean)
+avg_prob_sign_test <- colMeans(surv_prob_sign_test)
 
 pdf("RF_patients.pdf", width = 8, height = 6)
 # Plot the survival models for each patient
@@ -1279,7 +1305,7 @@ names(km_df_test) <- c("Time", "Surv", "Model")
 cox_fit_test <- survfit(cox, newdata = dat_test)
 
 # Calculate the average survival at each time point for the test set
-avg_surv_test <- sapply(as.data.frame(t(cox_fit_test$surv)), mean)
+avg_surv_test <- colMeans(as.data.frame(t(cox_fit_test$surv)))
 
 coxi_test <- rep("Cox", length(cox_fit_test$time))
 cox_df_test <-
